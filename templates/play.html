@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no"/>
+    <title>视频播放</title>
+    <link href="https://unpkg.com/video.js/dist/video-js.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/video.js/dist/video-js.css" rel="stylesheet">
+    <link href="../static/css/test.css" rel="stylesheet">
+    <script src="https://unpkg.com/video.js/dist/video.js"></script>
+    <script src="../static/js/jquery/dist/jquery.min.js"></script>
+    <script src="../static/js/jquery.danmu.js"></script>
+    <style>
+        .m {
+            width: 960px;
+            height: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 1%;
+        }
+
+        video:focus {
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+<div>
+<div class="m" id="media"style="float: left" >
+
+
+    <p style="font-size: xx-large;height:1px" id="mediaTitle">&nbsp;</p>
+    <h5 style="margin: 0;padding: 0">{{info.title}}</h5>
+    <video id="my-player" class="video-js vjs-default-skin vjs-big-play-centered vjs-16-9" poster="../static/img/{{ info.img_url }}" data-setup='{ "poster": "../static/img/{{ info.img_url  }}" }'>
+        <source id="source" src="http://127.0.0.1:8080/video1/{{ info.name}}.m3u8"></source>
+    </video>
+
+
+    <div class="send_danmu_bar">
+        弹幕&nbsp;&nbsp;
+        <input type="checkbox" checked='checked' name="sex" id="ishide" value='is' onchange='changehide()'
+               class="chooseBtn"/>
+        <label for="ishide" class="choose-label"></label>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="textarea" id="text" max=300 style="border-radius:5px;width: 250px;color: black"/>&nbsp;&nbsp;
+        <button type="button"
+                onclick="send()">发送
+        </button>
+    </div>
+</div>
+<div style=" width:550px;height: 200px; float: right;position: center" >
+     <p style="font-size: xx-large;height:25px" id="mediaTitle"></p>
+  <textarea rows="10" cols="30" readonly style="resize: none" >
+  video_information:
+  bit_rate:{{ info.bit_rate }}
+  duration:{{ info.duration }}
+  fps:{{ info.fps }}
+  num_frams:{{ info.num_frames }}
+  size:{{ info.size }}
+  resolution:{{ info.width }}*{{ info.height }}
+  video_introduction:{{ info.intro }}
+</textarea>
+<div style=" bottom: 80px"><a href="{% url 'play:index' %}">
+                        回到首页
+                       </a></div>
+</div>
+
+
+
+</div>
+
+
+<!--显示弹幕-->
+<div id="danmu" class="flying" style="pointer-events:none;"></div>
+<script type="text/javascript">
+    var player = videojs(document.getElementById('my-player'), {
+      controls: true, // 是否显示控制条
+      preload: 'auto',
+      autoplay: false,
+      language: 'zh-CN',
+        width: 400,
+        height: 500,
+      muted: false,
+      inactivityTimeout: false,
+      playbackRates: [0.5, 1, 1.5, 2],
+      playsinline: true,
+
+
+      controlBar: {
+        children: [
+          {name: 'playToggle'},
+          {name: 'currentTimeDisplay'},
+          {name: 'progressControl'},
+          {name: 'durationDisplay'},
+          {
+            name: 'PlaybackRateMenuButton',
+          },
+          {
+            name: 'volumePanel',
+            inline: false,
+          },
+          {
+            name: 'FullscreenToggle'
+          },
+        ]
+      },
+
+    }, function (){
+      console.log('视频可以播放了',this);
+    });
+
+
+  </script>
+<script>
+    var myPlayer = videojs('my-player');
+    var isObtain = true;
+    myPlayer.ready(function () {
+        var myPlayer = this;
+        //*********************************************************************************************************************************
+
+        //设置弹幕属性
+        $("#danmu").danmu({
+                left: $('#media').offset().left + 8,
+                top: $('#media').offset().top + document.getElementById("mediaTitle").offsetHeight + 160,
+                height: 400,//$("#my-player").height(),
+                width: 500,
+                zindex: 100,
+                speed: 7500,
+                opacity: 1,
+                font_size_small: 16,
+                font_size_big: 24,
+                top_botton_danmu_time: 6000
+            }
+        );
+        var myPlayer = this;
+        //每次播放都会进入这个函数
+        myPlayer.on("play", function () {
+            // $("#danmu").height($("#my-player").height() - $(".vjs-control-bar").height());
+            //设置弹幕出发的起始位置
+            $("#danmu").height($('#media').offset().top + 500);
+            $("#danmu").width(950);
+
+            //从服务器获取弹幕信息
+            if(isObtain){
+                $.get("/webDanmu/danmu/find/" , function (data) {//这个data是json数据，由后端的 list集合(里面的元素是每条弹幕消息)转过来的json数据
+                    $('#danmu').danmu("addDanmu", data);
+                }, "json");
+                isObtain = false;//保证只获取一次，不会应该视频的重新播放再次去获取数据，造成弹幕重复
+            }
+            //设置弹幕与视频同步
+            var whereYouAt = myPlayer.currentTime();
+            console.log(whereYouAt);
+            $('#danmu').danmu("setTime", Math.floor(whereYouAt * 10));
+
+            // $("#danmu").danmu("danmuStart");
+            $('#danmu').danmu('danmuResume');
+        });
+
+        myPlayer.on("pause", function () {
+            //暂停播放时，停止弹幕
+            $('#danmu').danmu('danmuPause');
+        });
+        myPlayer.on("progress", function () {
+            console.log("progress");
+        })
+    });
+
+    //发送弹幕
+    function send() {
+//        var color = document.getElementById('color').value;
+//        var position = document.getElementById('position').value;
+//        var size = document.getElementById('text_size').value;
+        var text = document.getElementById('text').value;
+        var time = $('#danmu').data("nowTime") + 1;
+        var color = "red";
+        var position = "0";
+        var size = "1";
+        if (text != "") {
+
+            $('#danmu').danmu("addDanmu",
+                {text: text, color: color, size: size, position: position, time: time, isnew: ""});
+            //将弹幕消息发送到后端，存到数据库中
+            $.post("/webDanmu/danmu/send/", {
+                text: text,
+                color: 'while',
+                size: size,
+                position: position,
+                time: time
+            }, function (data) {
+
+            }, "json");
+
+        }
+        document.getElementById('text').value = '';
+    }
+
+    function changehide() {
+    // 通过透明度控制是否显示弹幕
+        if (document.getElementById("ishide").checked) {
+            jQuery('#danmu').data("opacity", 1);
+            jQuery(".flying").css({
+                "opacity": 1
+            });
+        } else {
+            jQuery('#danmu').data("opacity", 0);
+            jQuery(".flying").css({
+                "opacity": 0
+            });
+        }
+    }
+
+    function settime() {
+        var t = document.getElementById("set_time").value;
+        t = parseInt(t);
+        console.log(t);
+        $('#danmu').data("nowtime", t);
+    }
+
+</script>
+</body>
+</html>

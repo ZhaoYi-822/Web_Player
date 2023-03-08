@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</head>
+<body class="bg-dark bg-opacity-75">
+<div class="container vh-100">
+    <div class="row vh-100">
+        <div class="col-4 m-auto p-5 justify-content-center bg-white rounded">
+            <form  role="form" action="{% url 'play:upload' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label mb-1 text-black-50">标题</label>
+                    <input type="text" class="form-control" name="title">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label mb-1 text-black-50">简介</label>
+                    <textarea class="form-control" rows="3" name="intro"></textarea>
+
+                </div>
+                <div class="mb-5">
+                    <label class="form-label mb-1 text-black-50">视频上传</label>
+                      <input type="file" class="form-control-file" name ='hunter' id="exampleFormControlFile1">
+                </div>
+
+                <div class="mb-1">
+                    <button type="submit" class="form-control btn-primary">上传</button>
+                </div>
+                <div class="mb-6">
+                   <a href="{% url 'play:index' %}">
+                        回到首页
+                       </a>
+
+                </div>
+                {{ msg }}
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

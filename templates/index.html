@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+
+    <link rel="stylesheet" href="../static/css/base.css">
+
+    <link rel="stylesheet" href="../static/css/common.css">
+
+    <link rel="stylesheet" href="../static/css/list.css">
+</head>
+<body>
+
+    <div class="header w">
+
+        <div class="shopcar">
+
+            <a href="{% url 'play:upload' %}">视频上传</a>
+
+        </div>
+    </div>
+
+    <div class="sk_container w">
+
+        <div class="sk_bd clearfix">
+            <ul>
+                 {% for info in info %}
+                <li class="sk_goods">
+
+
+                    <a href="{% url 'play:play' %}?id={{ info.name}}">
+                        <img src="../static/img/{{ info.img_url}}" height="250" width="200">
+                        <h5 class="sk_goods_title">{{ info.title}}</h5>
+                         <h5 class="sk_goods_title">简介：{{ info.intro}}</h5>
+                    </a>
+
+                </li>
+{% endfor %}
+
+
+
+            </ul>
+        </div>
+
+    </div>
+
+</body>
+</html>
